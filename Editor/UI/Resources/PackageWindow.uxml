@@ -1,0 +1,11 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" kpm="Kyowon.Package.UI" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/KyowonPackageManager/Editor/PackageWindow/PackageWindow.uss?fileID=7433441132597879392&amp;guid=ddd273dccf332403c959485831c4bff5&amp;type=3#PackageWindow" />
+    <ui:TwoPaneSplitView fixed-pane-initial-dimension="300" name="mainContainer" class="unity-visual-splitter">
+        <ui:VisualElement name="leftColumnContainer">
+            <Kyowon.Package.UI.PackageList name="packageList" />
+        </ui:VisualElement>
+        <ui:VisualElement name="rightColumnContainer">
+            <Kyowon.Package.UI.PackageDetails name="packageDetails" />
+        </ui:VisualElement>
+    </ui:TwoPaneSplitView>
+</ui:UXML>

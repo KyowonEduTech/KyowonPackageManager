@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xmlns:kpm="Kyowon.Package.UI"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+>
+    <engine:VisualElement name="packageList">
+        <engine:VisualElement name="listContainer">
+            <engine:ScrollView name="scrollView" vertical-page-size="10"/>
+        </engine:VisualElement>
+        <engine:VisualElement name="emptyArea" class="emptyArea">
+            <engine:Label class="title" text="There are no packages."/>
+        </engine:VisualElement>
+        <engine:VisualElement name="packageStatusBar">
+            <engine:Label name="errorIcon" class="unity-text-element unity-label" />
+            <engine:Label name="statusLabel" text="Last update " class="unity-text-element unity-label" />
+            <engine:VisualElement name="refreshButtonContainer">
+                <engine:Button name="refreshButton" class="unity-button customAction">
+                    <engine:VisualElement name="imageIcon" class="refresh" />
+                </engine:Button>
+            </engine:VisualElement>
+            <kpm:LoadingSpinner name="loadingSpinner">
+                <engine:VisualElement class="image" />
+            </kpm:LoadingSpinner>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

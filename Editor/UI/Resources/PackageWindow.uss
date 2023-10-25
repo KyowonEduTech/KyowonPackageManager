@@ -1,0 +1,218 @@
+#mainContainer {
+    flex-basis: 0%;
+    flex-direction: Row;
+    color: #D2D2D2;
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+
+#leftColumnContainer {
+    flex-basis: auto;
+    min-width: 300px;
+    max-width: 425px;
+}
+
+#packageList {
+    flex-basis: 0%;
+    flex-direction: Column;
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+
+#listContainer {
+    flex-basis: 0%;
+    flex-direction: Column;
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+
+PackageItem {
+    border-color: #232323;
+    border-bottom-width: 1px;
+}
+PackageItem #mainItem {
+    align-items: Center;
+    border-left-width: 5px;
+    flex-direction: Row;
+    height: 24px;
+    justify-content: flex-start;
+    padding: 1px 2px 1px 2px;
+}
+PackageItem #mainItem.selected {
+    background-color: #4D4D4D;
+}
+PackageItem #leftContainer {
+    flex-direction: Row;
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 90px;
+    padding-right: 5px;
+}
+PackageItem #versionLabel {
+    align-self: Center;
+    flex-basis: auto;
+    flex-direction: Row;
+    flex-shrink: 1;
+    margin: 0 4px 0 0;
+    overflow: Hidden;
+    padding: 2px 0 2px 2px;
+    text-overflow: Ellipsis;
+    -unity-text-align: middle-right;
+}
+PackageItem #rightContainer {
+    flex-direction: Row;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+PackageItem #stateIcon {
+    align-self: Center;
+    flex-shrink: 0;
+    height: 16px;
+    margin: 0;
+    padding: 0;
+    width: 16px;
+}
+
+#packageStatusBar {
+    background-color: #404040;
+    border-color: #232323;
+    border-top-width: 1px;
+    height: 30px;
+    position: Relative;
+    margin-left: 2px;
+    justify-content: flex-start;
+    flex-direction: Row;
+    align-items: Center;
+}
+#statusLabel {
+    flex-basis: 0;
+    flex-grow: 1;
+    margin: 2px 4px 2px 4px;
+    padding: 1px 2px 2px 2px;
+    -unity-font-style: italic;
+}
+#refreshButton {
+    display: flex;
+    height: 20px;
+    position: relative;
+}
+#refreshButton #imageIcon {
+    width: 16px;
+    height: 16px;
+}
+
+#rightColumnContainer {
+    border-bottom-color: #232323;
+    border-left-color: #232323;
+    border-left-width: 1px;
+    border-right-color: #232323;
+    border-top-color: #232323;
+    flex-basis: auto;
+    min-width: 375px;
+}
+#packageDetails {
+    background-color: #2B292B;
+    flex-basis: 0%;
+    flex-direction: Column;
+    flex-grow: 1;
+    flex-shrink: 0;
+    position: Relative;
+}
+#detailsHeader {
+    background-color: #383838;
+    padding: 10px 0 0 5px;
+}
+#detailsHeader .titleToolbarContainer {
+    align-items: Center;
+    flex-basis: auto;
+    flex-direction: Row;
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-wrap: Wrap;
+    justify-content: space-between;
+    margin: 0 4px 0 4px;
+    padding-left: 2px;
+}
+#detailTitle {
+    flex-basis: 0%;
+    flex-grow: 1;
+    flex-shrink: 0;
+    font-size: 19px;
+    margin: 0;
+    min-width: 100px;
+    padding: 1px 2px 0 2px;
+    text-overflow: ellipsis;
+    -unity-font-style: Bold;
+}
+#packageToolbar {
+    align-self: Center;
+    flex-direction: Row;
+    flex-grow: 0;
+    flex-shrink: 0;
+    height: 25px;
+    justify-content: flex-end;
+    margin-right: 4px;
+}
+#packageToolbar .unity-button {
+    height: 20px;
+    min-width: 73px;
+    margin: 3px 4px 3px 4px;
+    padding: 0 6px 0 6px;
+}
+#detailVersion {
+    flex-basis: auto;
+    flex-grow: 0;
+    flex-shrink: 0;
+    height: 18px;
+    margin-left: 4px;
+    margin-top: 4px;
+    padding: 1px 2px 4px 4px;
+    -unity-font-style: Bold;
+}
+#detailName {
+    flex-basis: auto;
+    flex-grow: 1;
+    flex-shrink: 1;
+    margin: 2px 4px 2px 4px;
+    padding: 1px 2px 2px 4px;
+    min-height: 20px;
+    -unity-font-style: Italic;
+}
+#detailDescription {
+    flex-basis: auto;
+    flex-grow: 0;
+    flex-shrink: 1;
+    margin: 12px 8px 6px 8px;
+    padding : 1px 2px 2px 2px;
+}
+
+
+
+.emptyArea {
+    flex-basis: auto;
+    flex-direction: Column;
+    flex-grow: 1;
+    flex-shrink: 0;
+    justify-content: Center;
+    margin: 10px;
+}
+
+.urlButton {
+    flex-grow : 1;
+    cursor: link;
+}
+
+
+.display-none {
+    display: none;
+}
+
+.installed {
+    background-image: resource("Installed@2x.png")
+}
+.updateavailable {
+    background-image: resource("Update-Available@2x.png")
+}
+.refresh {
+    background-image: resource("Refresh@2x.png")
+}

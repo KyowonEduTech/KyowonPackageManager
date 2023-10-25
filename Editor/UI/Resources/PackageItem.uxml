@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"    
+    xmlns:kpm="Kyowon.Package.UI"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" >
+    <engine:VisualElement name="mainItem">
+        <engine:VisualElement name="leftContainer" class="left">
+            <engine:Label name="dependencyIcon" class="unity-text-element unity-label" />
+            <engine:Label name="lockedIcon" class="unity-text-element unity-label" />
+            <engine:Label name="expanderHidden" class="unity-text-element unity-label expanderHidden" />
+            <engine:Label name="packageName" class="unity-text-element unity-label name" />
+            <engine:Label name="entitlementLabel" class="unity-text-element unity-label" />
+        </engine:VisualElement>
+        <engine:Label name="versionLabel" class="unity-text-element unity-label version middle" />
+        <engine:VisualElement name="rightContainer" class="right">
+            <engine:VisualElement name="tagContainer">
+                <!-- <PackageTagLabel text="Local" class="unity-text-element unity-label Local" /> -->
+            </engine:VisualElement>
+        </engine:VisualElement>
+        <engine:VisualElement name="statesContainer">
+            <engine:VisualElement name="stateIcon"/>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

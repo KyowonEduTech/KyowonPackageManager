@@ -1,0 +1,25 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" kpm="Kyowon.Package.UI" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:ScrollView name="detailScrollView" class="unity-scroll-view unity-scroll-view--scroll unity-scroll-view--vertical">
+        <ui:VisualElement name="detail">
+            <ui:VisualElement name="detailsHeader" style="margin-bottom: 10px;">
+                <ui:VisualElement class="titleToolbarContainer">
+                    <ui:Label name="detailTitle" />
+                    <ui:VisualElement name="packageToolbar">
+                        <ui:Button name="packageInstallButton" text="Install" class="unity-text-element unity-button" />
+                        <ui:Button name="packageRemoveButton" text="Remove" class="unity-text-element unity-button" />
+                        <ui:Button name="packageUpdateButton" text="Update" class="unity-text-element unity-button" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Label name="detailVersion" class="unity-text-element .unity-lebel" />
+                <ui:Label name="detailName" class="unity-text-element .unity-lebel" />
+                <ui:Button text="Document" parse-escape-sequences="true" display-tooltip-when-elided="true" name="DocumentButton" class="link unity-disabled urlButton" style="white-space: nowrap; -unity-text-align: middle-left; color: rgb(76, 126, 255); background-color: rgba(255, 255, 255, 0); border-left-color: rgba(149, 149, 149, 0); border-right-color: rgba(149, 149, 149, 0); border-top-color: rgba(149, 149, 149, 0); border-bottom-color: rgba(149, 149, 149, 0); text-overflow: clip; align-self: flex-start; padding-top: 4px; padding-right: 2px; padding-bottom: 4px; padding-left: 4px; margin-top: 4px; margin-left: 2px; margin-bottom: 8px;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="detailsBody">
+                <ui:VisualElement name="detailsBodyHeader">
+                    <ui:Label text="Description" style="margin-left: 14px;" />
+                </ui:VisualElement>
+                <ui:Label name="detailDescription" style="padding-left: 8px;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:ScrollView>
+</ui:UXML>
