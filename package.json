@@ -1,0 +1,7 @@
+{
+  "name": "com.kyowon.unityplugins.kyowonpackagemanager",
+  "version": "1.0.0",
+  "displayName": "KyowonPackageManager",
+  "description": "Unity package for Kyowon Package management",
+  "unity": "2022.3"
+}
