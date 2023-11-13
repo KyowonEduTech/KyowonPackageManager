@@ -1,0 +1,84 @@
+using System;
+using System.IO;
+using UnityEngine;
+
+
+namespace KyowonPackageManager.Editor
+{
+    public class KyowonCertificationManager : MonoBehaviour
+    {
+
+#if UNITY_EDITOR_WIN
+#elif UNITY_EDITOR_OSX
+        private static string _homePath = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+#endif
+        private const string NPM_FILE_NAME = ".upmconfig.toml";
+        private const string GITHUB_LINK = "https://npm.pkg.github.com/@kyowonedutech";
+
+        private const string KYOWON_CERTIFICATION_SUCCESS = "Kyowon 인증 되었습니다.";
+        private const string KYOWON_CERTIFICATION_FAIL = "Kyowon 인증이 필요합니다.";
+
+
+        public static bool HasPackagePermission(string token = null)
+        {
+            return HasUPMConfigFile(token);
+        }
+
+        private static bool HasUPMConfigFile(string token)
+        {
+            string upmConfigPath = Path.Combine(_homePath, NPM_FILE_NAME);
+
+            if (File.Exists(upmConfigPath))
+            {
+                Debug.Log(KYOWON_CERTIFICATION_SUCCESS);
+                return true;
+            }
+            else
+            {
+                if(token != null)
+                {
+                    MakeUpmConfigFile(token);
+                    HasUPMConfigFile(null);
+                    return true;
+                }
+                Debug.Log(KYOWON_CERTIFICATION_FAIL);
+                return false;
+            }
+        }
+
+
+        private static void MakeUpmConfigFile(string token)
+        {
+            string registry = $"[npmAuth.\"{GITHUB_LINK}\"]";
+            string tokenString = $"token = \"{token}\"";
+            string alwaysAuth = "alwaysAuth = true";
+            string npmConfigContent = $"{registry}\n{tokenString}\n{alwaysAuth}";
+
+            File.WriteAllText(Path.Combine(_homePath, NPM_FILE_NAME), npmConfigContent);
+        }
+
+        public static string GetToken()
+        {
+            string removeString = "token = \"";
+
+            StreamReader streamReader = new StreamReader(Path.Combine(_homePath, NPM_FILE_NAME));
+            string line = streamReader.ReadLine();
+
+            while(line != null)
+            {
+                if (line.Contains(removeString))
+                {
+                    line = line.Remove(line.IndexOf(removeString), removeString.Length);
+                    line = line.TrimEnd('\"');
+                    break;
+                }
+                line = streamReader.ReadLine();
+            }
+
+            streamReader.Close();
+            Console.ReadLine();
+
+            return line;
+        }
+    }
+}
