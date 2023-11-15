@@ -4,19 +4,19 @@ using System.IO;
 using System.Threading.Tasks;
 using Unity.Plastic.Newtonsoft.Json;
 using UnityEditor;
-using UnityEngine;
 
 
 namespace KyowonPackageManager.Editor
 {
     public static class KyowonPackageManager
     {
-        private static string _path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "KyowonPackageManager");
-        private static string _fileName = "manifest.json";
+        private static readonly string _path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "KyowonPackageManager");
+        private static readonly string _fileName = "manifest.json";
 
         [InitializeOnLoadMethod]
-        private static void Start()
+        public static void Initialize()
         {
+
             if (!KyowonCertificationManager.HasPackagePermission())
             {
                 KyowonEditorWindow.ShowEditorWindow(KyowonEditorWindow.WindowType.Certification);
@@ -39,8 +39,9 @@ namespace KyowonPackageManager.Editor
             return JsonConvert.DeserializeObject<GitHubPackageDetailInfo>(packageDetailInfoText);
         }
 
-        public static async Task InstallPackage(GitHubPackageDetailInfo packageDetailInfo)
+        public static async Task InstallPackage(string packageName)
         {
+            GitHubPackageDetailInfo packageDetailInfo = await GetPackageDetailInfo(packageName);
             await GitHubAPI.DownloadPackage(packageDetailInfo);
         }
 
@@ -68,8 +69,7 @@ namespace KyowonPackageManager.Editor
             }
             else
             {
-                string content = "";
-                File.WriteAllText(Path.Combine(_path, _fileName), content);
+                File.WriteAllText(Path.Combine(_path, _fileName), null);
             }
         }
 

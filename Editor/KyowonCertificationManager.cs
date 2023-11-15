@@ -38,7 +38,6 @@ namespace KyowonPackageManager.Editor
                 if(token != null)
                 {
                     MakeUpmConfigFile(token);
-                    HasUPMConfigFile(null);
                     return true;
                 }
                 Debug.Log(KYOWON_CERTIFICATION_FAIL);
@@ -62,23 +61,23 @@ namespace KyowonPackageManager.Editor
             string removeString = "token = \"";
 
             StreamReader streamReader = new StreamReader(Path.Combine(_homePath, NPM_FILE_NAME));
-            string line = streamReader.ReadLine();
+            string token = streamReader.ReadLine();
 
-            while(line != null)
+            while(token != null)
             {
-                if (line.Contains(removeString))
+                if (token.Contains(removeString))
                 {
-                    line = line.Remove(line.IndexOf(removeString), removeString.Length);
-                    line = line.TrimEnd('\"');
+                    token = token.Remove(token.IndexOf(removeString), removeString.Length);
+                    token = token.TrimEnd('\"');
                     break;
                 }
-                line = streamReader.ReadLine();
+                token = streamReader.ReadLine();
             }
 
             streamReader.Close();
             Console.ReadLine();
 
-            return line;
+            return token;
         }
     }
 }

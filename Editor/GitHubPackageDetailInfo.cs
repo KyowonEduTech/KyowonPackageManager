@@ -43,14 +43,6 @@ namespace KyowonPackageManager.Editor
         public string Readme { get; set; }
     }
 
-    //TODO: scopedRegistry 추가해서 Dependency 설치가능한지 체크
-    public class ScopedRegistry
-    {
-        public string name { get; set; }
-        public string url { get; set; }
-        public string[] scopes { get; set; }
-    }
-
     [Serializable]
     public class GitHubPackageDetailInfo
     {

@@ -24,6 +24,8 @@ namespace KyowonPackageManager.Editor
                                           "2. GitHub 개인 계정에서 Personal Access Token 을 발급받아 입력하세요.";
         private const string GITHUB_PACKAGE_DOWNLOAD_GUIDE = "Kyowon Project Manager 를 다운로드하세요.";
 
+        private const string KYOWON_PACKAGE_DOCUMENT_URL = "https://docs.google.com/document/d/1VA3VgsjUbBkwESblH3JFVOWyZQ6IfyG0ZwpgHqvPqcU/edit?usp=sharing";
+
 
         public static KyowonEditorWindow Window { get; private set; }
 
@@ -62,7 +64,6 @@ namespace KyowonPackageManager.Editor
 
         private string _inputKey = "";
         private List<GitHubPackageInfo> _packageList;
-        private GitHubPackageDetailInfo _packageDetailInfo;
 
         private void OnGUI()
         {
@@ -77,7 +78,9 @@ namespace KyowonPackageManager.Editor
                     _inputKey = EditorGUILayout.TextField("Personal Access Token", _inputKey);
                     if (GUILayout.Button("Certification"))
                     {
+                        Close();
                         KyowonCertificationManager.HasPackagePermission(_inputKey);
+                        KyowonPackageManager.Initialize();
                     }
                     break;
                 case WindowType.PackageDonwlad:
@@ -100,7 +103,7 @@ namespace KyowonPackageManager.Editor
                         }
                         if (GUILayout.Button("Document"))
                         {
-                            Application.OpenURL("https://docs.google.com/document/d/1VA3VgsjUbBkwESblH3JFVOWyZQ6IfyG0ZwpgHqvPqcU/edit?usp=sharing");
+                            Application.OpenURL(KYOWON_PACKAGE_DOCUMENT_URL);
                         }
                         EditorGUILayout.EndHorizontal();
 
@@ -114,6 +117,12 @@ namespace KyowonPackageManager.Editor
             }
         }
 
+        private void OnDestroy()
+        {
+            KyowonPackageManager.Initialize();
+
+        }
+
         private async void GetPackageInfo()
         {
             _packageList = await KyowonPackageManager.GetPackageInfo();
@@ -121,8 +130,7 @@ namespace KyowonPackageManager.Editor
 
         private async void InstallPackage(string packageName)
         {
-            _packageDetailInfo = await KyowonPackageManager.GetPackageDetailInfo(packageName);
-            KyowonPackageManager.InstallPackage(_packageDetailInfo);
+            await KyowonPackageManager.InstallPackage(packageName);
         }
 
         private Texture2D GetLogoImage()

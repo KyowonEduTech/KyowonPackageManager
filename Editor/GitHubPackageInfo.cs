@@ -34,6 +34,7 @@ namespace KyowonPackageManager.Editor
     {
         [JsonProperty(PropertyName = "login")]
         public string Login { get; set; }
+
         [JsonProperty(PropertyName = "id")]
         public int Id { get; set; }
     }

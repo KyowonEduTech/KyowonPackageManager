@@ -55,9 +55,10 @@ namespace KyowonPackageManager.Editor
             {
                 UnityEngine.Debug.Log($"Key: {keyValue.Key}, Value: {keyValue.Value}");
 
-                Request = Client.Add("git+https://github.com/Cysharp/UniTask.git");
-                //Key 값으로 설치 안되면 Value 값으로 추가하고 설치해야 함
-                EditorApplication.update += Progress;
+                //TODO: Key 값으로 설치 안되면 Value 값으로 추가하고 설치해야 함
+                //Request = Client.Add(keyValue.Key);
+
+               // EditorApplication.update += Progress;
             }
         }
 
