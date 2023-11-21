@@ -8,57 +8,51 @@ namespace KyowonPackageManager.Editor
 {
     public class KyowonEditorWindow : EditorWindow
     {
-
-        public enum WindowType
-        {
-            Certification,
-            PackageDonwlad
-        }
-        private WindowType _currentWindow = WindowType.Certification;
-
         private const string EDITOR_CERTIFICATION_WINDOW_TITLE = "Kyowon Certification Windnow";
         private const string EDITOR_DOWNLOAD_WINDOW_TITLE = "Kyowon Package Download Windnow";
 
         private const string GITHUB_TOKEN_GUIDE = "Kyowon GitHub 인증키가 필요합니다.\n\n" +
                                           "1. Project 담당자에게 GitHub KyowonEduTech Repository 의 권한을 요청하세요.\n" +
-                                          "2. GitHub 개인 계정에서 Personal Access Token 을 발급받아 입력하세요.";
+                                          "2. GitHub 개인 계정에서 Personal Access Token 을 발급받아 입력하세요.\n";
         private const string GITHUB_PACKAGE_DOWNLOAD_GUIDE = "Kyowon Project Manager 를 다운로드하세요.";
 
         private const string KYOWON_PACKAGE_DOCUMENT_URL = "https://docs.google.com/document/d/1VA3VgsjUbBkwESblH3JFVOWyZQ6IfyG0ZwpgHqvPqcU/edit?usp=sharing";
 
-
         public static KyowonEditorWindow Window { get; private set; }
-
-        private static bool IsOpenedWindow
+        public static bool IsOpenedWindow
         {
             get { return Window != null; }
         }
 
         [MenuItem("Kyowon/Kyowon Package Manager")]
-        public static void ShowEditorWindow(WindowType windowType)
+        private static void ShowEditorWindow()
         {
             if (IsOpenedWindow)
             {
                 return;
             }
 
-            string titleText;
-            switch (windowType)
+            if (!KyowonCertificationManager.HasPackagePermission())
             {
-                case WindowType.Certification:
-                    titleText = EDITOR_CERTIFICATION_WINDOW_TITLE;
-                    break;
-                case WindowType.PackageDonwlad:
-                    titleText = EDITOR_DOWNLOAD_WINDOW_TITLE;
-                    break;
-                default:
-                    titleText = EDITOR_CERTIFICATION_WINDOW_TITLE;
-                    break;
+                ShowCertificationWindow();
             }
+            else
+            {
+                ShowDownloadWindow();
+            }
+        }
 
+        public static void ShowCertificationWindow()
+        {
             Window = GetWindow<KyowonEditorWindow>();
-            Window._currentWindow = windowType;
-            Window.titleContent = new GUIContent(titleText);
+            Window.titleContent = new GUIContent(EDITOR_CERTIFICATION_WINDOW_TITLE);
+            Window.Show();
+        }
+
+        public static void ShowDownloadWindow()
+        {
+            Window = GetWindow<KyowonEditorWindow>();
+            Window.titleContent = new GUIContent(EDITOR_DOWNLOAD_WINDOW_TITLE);
             Window.Show();
         }
 
@@ -67,60 +61,47 @@ namespace KyowonPackageManager.Editor
 
         private void OnGUI()
         {
-            switch (_currentWindow)
+            if (!KyowonCertificationManager.HasPackagePermission())
             {
-                case WindowType.Certification:
+                Window.position = new Rect(Screen.width / 2, Screen.height / 2, 500, 115);
+                EditorGUILayout.HelpBox(GITHUB_TOKEN_GUIDE, MessageType.Warning);
 
-                    Window.position = new Rect(Screen.width / 2, Screen.height / 2, 500, 115);
-                    EditorGUILayout.HelpBox(GITHUB_TOKEN_GUIDE, MessageType.Warning);
-                    EditorGUILayout.Space(10);
-
-                    _inputKey = EditorGUILayout.TextField("Personal Access Token", _inputKey);
-                    if (GUILayout.Button("Certification"))
-                    {
-                        Close();
-                        KyowonCertificationManager.HasPackagePermission(_inputKey);
-                        KyowonPackageManager.Initialize();
-                    }
-                    break;
-                case WindowType.PackageDonwlad:
-
-                    Window.position = new Rect(Screen.width / 2, Screen.height / 2, 600, 500);
-
-                    GetPackageInfo();
-                    if (_packageList != null)
-                    {
-                        EditorGUILayout.HelpBox(GITHUB_PACKAGE_DOWNLOAD_GUIDE, MessageType.Info);
-
-                        EditorGUILayout.BeginHorizontal();
-                        GUILayout.Label(GetLogoImage());
-
-                        //TODO: com.kyowon.unityplugins.projectmanager 인지 체크
-                        EditorGUILayout.LabelField(_packageList[0].Name); 
-                        if (GUILayout.Button("Install"))
-                        {
-                            InstallPackage(_packageList[0].Name);
-                        }
-                        if (GUILayout.Button("Document"))
-                        {
-                            Application.OpenURL(KYOWON_PACKAGE_DOCUMENT_URL);
-                        }
-                        EditorGUILayout.EndHorizontal();
-
-                        //Set UI - Kyowon Modules
-                        //MakePacakgeObject();
-                    }
-                    break;
-                default:
-
-                    break;
+                _inputKey = EditorGUILayout.TextField("Personal Access Token", _inputKey);
+                if (GUILayout.Button("Certification"))
+                {
+                    Close();
+                    KyowonCertificationManager.HasPackagePermission(_inputKey);
+                }
             }
-        }
+            else
+            {
+                Window.position = new Rect(Screen.width / 2, Screen.height / 2, 600, 130);
 
-        private void OnDestroy()
-        {
-            KyowonPackageManager.Initialize();
+                GetPackageInfo();
+                if (_packageList != null)
+                {
+                    EditorGUILayout.HelpBox(GITHUB_PACKAGE_DOWNLOAD_GUIDE, MessageType.Info);
 
+                    EditorGUILayout.BeginHorizontal();
+                    GUILayout.Label(GetLogoImage());
+
+                    //TODO: com.kyowon.unityplugins.projectmanager 인지 체크
+                    EditorGUILayout.LabelField(_packageList[0].Name);
+                    if (GUILayout.Button("Install"))
+                    {
+                        InstallPackage(_packageList[0].Name);
+                    }
+                    if (GUILayout.Button("Document"))
+                    {
+                        Application.OpenURL(KYOWON_PACKAGE_DOCUMENT_URL);
+                    }
+                    EditorGUILayout.EndHorizontal();
+
+
+                    //Set UI - Kyowon Modules
+                    //MakePacakgeObject();
+                }
+            }
         }
 
         private async void GetPackageInfo()

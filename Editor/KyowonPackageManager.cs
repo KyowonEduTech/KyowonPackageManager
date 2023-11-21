@@ -4,26 +4,36 @@ using System.IO;
 using System.Threading.Tasks;
 using Unity.Plastic.Newtonsoft.Json;
 using UnityEditor;
+using UnityEngine.Device;
 
 
 namespace KyowonPackageManager.Editor
 {
+    [InitializeOnLoad]
     public static class KyowonPackageManager
     {
         private static readonly string _path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "KyowonPackageManager");
         private static readonly string _fileName = "manifest.json";
 
-        [InitializeOnLoadMethod]
+        static KyowonPackageManager()
+        {
+            EditorApplication.update += Initialize;
+        }
+
         public static void Initialize()
         {
+            if (KyowonEditorWindow.IsOpenedWindow || IsInstalled("com.kyowon.unityplugins.projectmanager"))
+            {
+                return;
+            }
 
             if (!KyowonCertificationManager.HasPackagePermission())
             {
-                KyowonEditorWindow.ShowEditorWindow(KyowonEditorWindow.WindowType.Certification);
+                KyowonEditorWindow.ShowCertificationWindow();
             }
             else
-            {
-                KyowonEditorWindow.ShowEditorWindow(KyowonEditorWindow.WindowType.PackageDonwlad);
+            { 
+                KyowonEditorWindow.ShowDownloadWindow();
             }
         }
 
@@ -57,11 +67,19 @@ namespace KyowonPackageManager.Editor
             //파일 덮어쓰기
         }
 
-        public static bool IsInstalled()
+        public static bool IsInstalled(string packageName)
         {
-            return true;
+            string packageFolderPath = Path.Combine(Application.dataPath, "KyowonModules");
+            string searchFilePath = Path.Combine(packageFolderPath, packageName);
+
+            if (Directory.Exists(searchFilePath))
+            {
+                return true;
+            }
+            return false;
         }
-    
+
+        //download 된 pakcage 관리 파일 생성
         private static void SetManifest(string packageName)
         {
             if (File.Exists(Path.Combine(_path, _fileName))){
