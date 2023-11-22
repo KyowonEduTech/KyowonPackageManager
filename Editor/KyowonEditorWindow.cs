@@ -63,7 +63,9 @@ namespace KyowonPackageManager.Editor
         {
             if (!KyowonCertificationManager.HasPackagePermission())
             {
-                Window.position = new Rect(Screen.width / 2, Screen.height / 2, 500, 115);
+                Window.maxSize = new Vector2(500, 115);
+                Window.minSize = new Vector2(500, 115);
+
                 EditorGUILayout.HelpBox(GITHUB_TOKEN_GUIDE, MessageType.Warning);
 
                 _inputKey = EditorGUILayout.TextField("Personal Access Token", _inputKey);
@@ -75,7 +77,8 @@ namespace KyowonPackageManager.Editor
             }
             else
             {
-                Window.position = new Rect(Screen.width / 2, Screen.height / 2, 600, 130);
+                Window.maxSize = new Vector2(600, 130);
+                Window.minSize = new Vector2(600, 130);
 
                 GetPackageInfo();
                 if (_packageList != null)
