@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.PackageManager;
@@ -13,22 +14,21 @@ namespace KyowonPackageManager.Editor
 {
     public class GitHubAPI
     {
-
-        public static async Task<string> GetPacskageInfo(string packageName = "")
+        public static async Task<string> GetPacskageInfo(string packageName = null, string token = null)
         {
             const string PACKAGE_LIST_API_URL = "https://api.github.com/users/KyowonEduTech/packages?package_type=npm";
             const string PACKAGE_INFO_API_URL = "https://npm.pkg.github.com/@kyowonedutech/";
 
-            string packageURL = (packageName == "") ? PACKAGE_LIST_API_URL : PACKAGE_INFO_API_URL;
-            DownloadHandler handler = await SendRequest(MakeRequest(packageURL + packageName));
+            string packageURL = (packageName == null) ? PACKAGE_LIST_API_URL : PACKAGE_INFO_API_URL;
+            DownloadHandler handler = await SendRequest(MakeRequest(packageURL + packageName, token));
 
-            return handler.text;
+            return handler?.text;
         }
 
         public static async Task DownloadPackage(GitHubPackageDetailInfo packageDetailInfo)
         {
             string latestVesion = packageDetailInfo.dist_tags.Latest;
-            string packageName =  packageDetailInfo.Name;
+            string packageName = packageDetailInfo.Name;
             string url = packageDetailInfo.Versions[latestVesion].Dist.Tarball;
 
             DownloadHandler handler = await SendRequest(MakeRequest(url));
@@ -39,39 +39,64 @@ namespace KyowonPackageManager.Editor
             if (!File.Exists(packageFolderPath))
             {
                 Directory.CreateDirectory(packageFolderPath);
-                if (!File.Exists(Path.Combine(packageFolderPath, packageName))){
+                if (!File.Exists(Path.Combine(packageFolderPath, packageName))) {
                     File.WriteAllBytes(downloadFile, tarballData);
                     UnpackTarball(downloadFile, packageName);
                 }
             }
             UnityEngine.Debug.Log($"{packageName} Download Complete");
-            DownloadDependency(packageDetailInfo.Versions[latestVesion].Dependencies);
+
+            await DownloadDependencies(packageDetailInfo.Versions[latestVesion].Dependencies);
+            UnityEngine.Debug.Log("All dependency packages installed!");
+            UnityEngine.Debug.ClearDeveloperConsole();
         }
 
-        static AddRequest Request;
-        private static void DownloadDependency(Dictionary <string, string> dependencies)
+        private static async Task DownloadDependencies(Dictionary<string, string> packageDictionary)
         {
-            foreach (KeyValuePair<string, string> keyValue in dependencies)
+            foreach (KeyValuePair<string, string> dependency in packageDictionary)
             {
-                UnityEngine.Debug.Log($"Key: {keyValue.Key}, Value: {keyValue.Value}");
+                AddRequest request = Client.Add(dependency.Key);
 
-                //TODO: Key 값으로 설치 안되면 Value 값으로 추가하고 설치해야 함
-                //Request = Client.Add(keyValue.Key);
+                while (!request.IsCompleted)
+                {
+                    await Task.Delay(1000);
+                }
 
-               // EditorApplication.update += Progress;
+                if (request.Status == StatusCode.Success)
+                {
+                    UnityEngine.Debug.Log($"Package {dependency.Key} installed successfully!");
+                }
+                else
+                {
+                    UnityEngine.Debug.LogError($"Failed to install package {dependency.Key}: {request.Error.message}");
+                    await DownloadDependencyWithValue(dependency.Value);
+                }
             }
         }
 
-        private static void Progress()
+        private static async Task DownloadDependencyWithValue(string packageValue)
         {
-            if (Request.IsCompleted)
+            packageValue = ChangeFormatToUrl(packageValue);
+            AddRequest request2 = Client.Add(packageValue);
+
+            while (!request2.IsCompleted)
             {
-                if (Request.Status == StatusCode.Success)
-                    UnityEngine.Debug.Log("Installed: " + Request.Result.packageId);
-                else if (Request.Status >= StatusCode.Failure)
-                    UnityEngine.Debug.Log(Request.Error.message);
-                EditorApplication.update -= Progress;
+                await Task.Delay(1000);
             }
+
+            if (request2.Status == StatusCode.Success)
+            {
+                UnityEngine.Debug.Log($"Package {packageValue} installed successfully!");
+            }
+            else
+            {
+                UnityEngine.Debug.LogError($"Failed to install package {packageValue}: {request2.Error.message}");
+            }
+        }
+
+        private static string ChangeFormatToUrl(string value)
+        {
+            return value.Replace("#", "?");
         }
 
         /*
@@ -82,11 +107,12 @@ namespace KyowonPackageManager.Editor
         }
         */
 
-        private static UnityWebRequest MakeRequest(string apiUrl)
+        private static UnityWebRequest MakeRequest(string apiUrl, string token = null)
         {
             UnityWebRequest request = UnityWebRequest.Get(apiUrl);
 
-            string authHeader = "Bearer " + KyowonCertificationManager.GetToken();
+            string certiToken = token ?? KyowonCertificationManager.GetToken();
+            string authHeader = "Bearer " + certiToken;
             request.SetRequestHeader("Authorization", authHeader);
             request.SetRequestHeader("Accept", "application/vnd.github+json");
             request.SetRequestHeader("X-GitHub-Api-Version", "2022-11-28");

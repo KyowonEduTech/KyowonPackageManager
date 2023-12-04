@@ -8,8 +8,8 @@ namespace KyowonPackageManager.Editor
 {
     public class KyowonEditorWindow : EditorWindow
     {
-        private const string EDITOR_CERTIFICATION_WINDOW_TITLE = "Kyowon Certification Windnow";
-        private const string EDITOR_DOWNLOAD_WINDOW_TITLE = "Kyowon Package Download Windnow";
+        private const string EDITOR_CERTIFICATION_WINDOW_TITLE = "Kyowon Certification";
+        private const string EDITOR_DOWNLOAD_WINDOW_TITLE = "Kyowon Package Download";
 
         private const string GITHUB_TOKEN_GUIDE = "\nKyowon GitHub 인증키가 필요합니다.\n\n" +
                                           "1. Project 담당자에게 GitHub KyowonEduTech Repository 의 권한을 요청하세요.\n" +
@@ -21,6 +21,11 @@ namespace KyowonPackageManager.Editor
 
         private const string KYOWON_PACKAGE_DOCUMENT_URL = "https://docs.google.com/document/d/1VA3VgsjUbBkwESblH3JFVOWyZQ6IfyG0ZwpgHqvPqcU/edit?usp=sharing";
 
+        private string _inputKey = "";
+        private List<GitHubPackageInfo> _packageList;
+
+
+
         public static KyowonEditorWindow Window { get; private set; }
         public static bool IsOpenedWindow
         {
@@ -28,21 +33,13 @@ namespace KyowonPackageManager.Editor
         }
 
         [MenuItem("Kyowon/Kyowon Package Manager")]
-        private static void ShowEditorWindow()
+        private static async void ShowEditorWindow()
         {
-            if (IsOpenedWindow)
-            {
-                return;
-            }
+            if (IsOpenedWindow) return;
 
-            if (!KyowonCertificationManager.HasPackagePermission())
-            {
-                ShowCertificationWindow();
-            }
-            else
-            {
-                ShowDownloadWindow();
-            }
+            bool hasPermission = await KyowonCertificationManager.HasPackagePermission();
+            if (!hasPermission) ShowCertificationWindow();
+            else ShowDownloadWindow();
         }
 
         public static void ShowCertificationWindow()
@@ -59,12 +56,10 @@ namespace KyowonPackageManager.Editor
             Window.Show();
         }
 
-        private string _inputKey = "";
-        private List<GitHubPackageInfo> _packageList;
-
-        private void OnGUI()
+        private async void OnGUI()
         {
-            if (!KyowonCertificationManager.HasPackagePermission())
+            bool hasPermission = await KyowonCertificationManager.HasPackagePermission();
+            if (!hasPermission)
             {
                 Window.maxSize = new Vector2(520, 160);
                 Window.minSize = new Vector2(520, 160);
@@ -87,7 +82,7 @@ namespace KyowonPackageManager.Editor
                 if (GUILayout.Button("Certification"))
                 {
                     Close();
-                    KyowonCertificationManager.HasPackagePermission(_inputKey);
+                    await KyowonCertificationManager.HasPackagePermission(_inputKey);
                 }
             }
             else
@@ -108,10 +103,12 @@ namespace KyowonPackageManager.Editor
                     if (GUILayout.Button("Install"))
                     {
                         InstallPackage(_packageList[0].Name);
+                       // GUI.enabled = false;
                     }
                     if (GUILayout.Button("Document"))
                     {
                         Application.OpenURL(KYOWON_PACKAGE_DOCUMENT_URL);
+                        EditorGUI.BeginDisabledGroup(true);
                     }
                     EditorGUILayout.EndHorizontal();
 

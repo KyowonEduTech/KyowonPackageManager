@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
 
 
@@ -19,12 +20,7 @@ namespace KyowonPackageManager.Editor
         private const string KYOWON_CERTIFICATION_FAIL = "Kyowon 인증이 필요합니다.";
 
 
-        public static bool HasPackagePermission(string token = null)
-        {
-            return HasUPMConfigFile(token);
-        }
-
-        private static bool HasUPMConfigFile(string token)
+        public static async Task<bool> HasPackagePermission(string token = null)
         {
             string upmConfigPath = Path.Combine(_homePath, NPM_FILE_NAME);
 
@@ -37,8 +33,12 @@ namespace KyowonPackageManager.Editor
             {
                 if(token != null)
                 {
-                    MakeUpmConfigFile(token);
-                    return true;
+                   bool isRight = await GitHubAPI.GetPacskageInfo(null, token) != null;
+                   if (isRight)
+                   {
+                        MakeUpmConfigFile(token);
+                        return true;
+                   }
                 }
                 Debug.Log(KYOWON_CERTIFICATION_FAIL);
                 return false;

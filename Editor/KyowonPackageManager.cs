@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -20,21 +21,14 @@ namespace KyowonPackageManager.Editor
             EditorApplication.update += Initialize;
         }
 
-        public static void Initialize()
+        public static async void Initialize()
         {
-            if (KyowonEditorWindow.IsOpenedWindow || IsInstalled("com.kyowon.unityplugins.projectmanager"))
-            {
-                return;
-            }
+            if (KyowonEditorWindow.IsOpenedWindow
+                || IsInstalled("com.kyowon.unityplugins.projectmanager")) return;
 
-            if (!KyowonCertificationManager.HasPackagePermission())
-            {
-                KyowonEditorWindow.ShowCertificationWindow();
-            }
-            else
-            { 
-                KyowonEditorWindow.ShowDownloadWindow();
-            }
+            bool hasPermission = await KyowonCertificationManager.HasPackagePermission();
+            if (!hasPermission) KyowonEditorWindow.ShowCertificationWindow();
+            else KyowonEditorWindow.ShowDownloadWindow();
         }
 
         public static async Task<List<GitHubPackageInfo>> GetPackageInfo()
@@ -72,17 +66,14 @@ namespace KyowonPackageManager.Editor
             string packageFolderPath = Path.Combine(Application.dataPath, "KyowonModules");
             string searchFilePath = Path.Combine(packageFolderPath, packageName);
 
-            if (Directory.Exists(searchFilePath))
-            {
-                return true;
-            }
-            return false;
+            return Directory.Exists(searchFilePath) ? true : false;
         }
 
         //download 된 pakcage 관리 파일 생성
         private static void SetManifest(string packageName)
         {
-            if (File.Exists(Path.Combine(_path, _fileName))){
+            if (File.Exists(Path.Combine(_path, _fileName)))
+            {
 
             }
             else
@@ -90,7 +81,5 @@ namespace KyowonPackageManager.Editor
                 File.WriteAllText(Path.Combine(_path, _fileName), null);
             }
         }
-
-       
     }
 }
