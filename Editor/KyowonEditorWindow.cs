@@ -33,7 +33,7 @@ namespace KyowonPackageManager.Editor
             get { return Window != null; }
         }
 
-        [MenuItem("Kyowon/Kyowon Package Manager")]
+        [MenuItem("Kyowon/Open Kyowon Package Manager")]
         private static async void ShowEditorWindow()
         {
             if (IsOpenedWindow) return;
@@ -41,6 +41,12 @@ namespace KyowonPackageManager.Editor
             bool hasPermission = await KyowonCertificationManager.HasPackagePermission();
             if (!hasPermission) ShowCertificationWindow();
             else ShowDownloadWindow();
+        }
+
+        [MenuItem("Kyowon/Delete GitHub Certification File")]
+        private static void DeleteCertiFile()
+        {
+            KyowonCertificationManager.DeleteCertiFile();
         }
 
         public static void ShowCertificationWindow()

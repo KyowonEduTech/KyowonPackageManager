@@ -56,6 +56,14 @@ namespace KyowonPackageManager.Editor
             File.WriteAllText(Path.Combine(_homePath, NPM_FILE_NAME), npmConfigContent);
         }
 
+        public static void DeleteCertiFile()
+        {
+            if (File.Exists(Path.Combine(_homePath, NPM_FILE_NAME)))
+            {
+                File.Delete(Path.Combine(_homePath, NPM_FILE_NAME));
+            }
+        }
+
         public static string GetToken()
         {
             string removeString = "token = \"";
