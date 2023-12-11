@@ -19,14 +19,12 @@ namespace KyowonPackageManager.Editor
         private const string KYOWON_CERTIFICATION_SUCCESS = "Kyowon 인증 되었습니다.";
         private const string KYOWON_CERTIFICATION_FAIL = "Kyowon 인증이 필요합니다.";
 
-
         public static async Task<bool> HasPackagePermission(string token = null)
         {
             string upmConfigPath = Path.Combine(_homePath, NPM_FILE_NAME);
 
             if (File.Exists(upmConfigPath))
             {
-                Debug.Log(KYOWON_CERTIFICATION_SUCCESS);
                 return true;
             }
             else
@@ -37,6 +35,7 @@ namespace KyowonPackageManager.Editor
                    if (isRight)
                    {
                         MakeUpmConfigFile(token);
+                        Debug.Log(KYOWON_CERTIFICATION_SUCCESS);
                         return true;
                    }
                 }

@@ -44,7 +44,9 @@ namespace KyowonPackageManager.Editor
             }
             UnityEngine.Debug.Log($"{packageName} Download Complete");
 
+            if (packageDetailInfo.Versions[latestVesion].Dependencies == null) return;
             await DownloadDependencies(packageDetailInfo.Versions[latestVesion].Dependencies);
+
             UnityEngine.Debug.Log("All dependency packages installed!");
             UnityEngine.Debug.ClearDeveloperConsole();
         }

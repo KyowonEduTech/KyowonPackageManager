@@ -3,28 +3,20 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Unity.Plastic.Newtonsoft.Json;
-using UnityEditor;
+using Newtonsoft.Json;
 using UnityEngine.Device;
 
 
 namespace KyowonPackageManager.Editor
 {
-    [InitializeOnLoad]
     public static class KyowonPackageManager
     {
         private static readonly string _path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "KyowonPackageManager");
-        private static readonly string _fileName = "manifest.json";
+        private const string MANIFEST_FILE_NAME = "manifest.json";
 
-        static KyowonPackageManager()
+        public static async void Start()
         {
-            EditorApplication.update += Initialize;
-        }
-
-        public static async void Initialize()
-        {
-            if (KyowonEditorWindow.IsOpenedWindow
-                || IsInstalled("com.kyowon.unityplugins.projectmanager")) return;
+            if (KyowonEditorWindow.IsOpenedWindow) return;
 
             bool hasPermission = await KyowonCertificationManager.HasPackagePermission();
             if (!hasPermission) KyowonEditorWindow.ShowCertificationWindow();
@@ -72,13 +64,13 @@ namespace KyowonPackageManager.Editor
         //download 된 pakcage 관리 파일 생성
         private static void SetManifest(string packageName)
         {
-            if (File.Exists(Path.Combine(_path, _fileName)))
+            if (File.Exists(Path.Combine(_path, MANIFEST_FILE_NAME)))
             {
 
             }
             else
             {
-                File.WriteAllText(Path.Combine(_path, _fileName), null);
+                File.WriteAllText(Path.Combine(_path, MANIFEST_FILE_NAME), null);
             }
         }
     }
