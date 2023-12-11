@@ -13,7 +13,8 @@ namespace KyowonPackageManager.Editor
 
         private const string GITHUB_TOKEN_GUIDE = "\nKyowon GitHub 인증키가 필요합니다.\n\n" +
                                           "1. Project 담당자에게 GitHub KyowonEduTech Repository 의 권한을 요청하세요.\n" +
-                                          "2. GitHub 개인 계정에서 Personal Access Token 을 발급받아 입력하세요.\n" +
+                                          "2. GitHub 개인 계정에서 Personal Access Token(classic) 을 발급받아 입력하세요.\n" +
+                                          "    발급 시, read:packages scope 를 추가해주어야 합니다.\n"+
                                           "3. 정상 인증 시, [Macintosh HD] - [사용자] - [유저이름] - .upmconfig.toml 파일이 생성됩니다.\n";
         private const string GITHUB_TOKEN_GUIDE_URL = "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens";
 
@@ -61,8 +62,8 @@ namespace KyowonPackageManager.Editor
             bool hasPermission = await KyowonCertificationManager.HasPackagePermission();
             if (!hasPermission)
             {
-                Window.maxSize = new Vector2(520, 160);
-                Window.minSize = new Vector2(520, 160);
+                Window.maxSize = new Vector2(520, 170);
+                Window.minSize = new Vector2(520, 170);
 
                 EditorGUILayout.HelpBox(GITHUB_TOKEN_GUIDE, MessageType.Warning);
 
