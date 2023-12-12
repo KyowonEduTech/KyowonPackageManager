@@ -31,7 +31,7 @@ namespace KyowonPackageManager.Editor
         private const string KYOWON_PACKAGE_DOCUMENT_URL = "https://docs.google.com/document/d/1VA3VgsjUbBkwESblH3JFVOWyZQ6IfyG0ZwpgHqvPqcU/edit?usp=sharing";
 
         private static string _inputKey = "";
-        private static List<GitHubPackageInfo> _packageList;
+        private static List<GitHubPackageDetailInfo> _packageDetailList;
 
 
         public static KyowonEditorWindow Window { get; private set; }
@@ -64,12 +64,31 @@ namespace KyowonPackageManager.Editor
             Window.Show();
         }
 
-        public static void ShowDownloadWindow()
+        public static async void ShowDownloadWindow()
         {
+            if (_packageDetailList == null)
+            {
+                EditorApplication.update += UpdateProgressbar;
+                _packageDetailList = await KyowonPackageManager.GetPackageInfo();
+                EditorApplication.update -= UpdateProgressbar;
+                EditorUtility.ClearProgressBar();
+            }
+
             Window = GetWindow<KyowonEditorWindow>();
             Window.titleContent = new GUIContent(EDITOR_DOWNLOAD_WINDOW_TITLE);
             _windowType = WINDOW_TYPE.Download;
             Window.Show();
+        }
+
+        private static float _progress = 0f;
+        private static void UpdateProgressbar()
+        {
+            _progress += 0.01f;
+            if (_progress > 1f)
+            {
+                _progress = 1f;
+            }
+            EditorUtility.DisplayProgressBar("Loading", "Getting package list...", _progress);
         }
 
         private async void OnGUI()
@@ -106,69 +125,65 @@ namespace KyowonPackageManager.Editor
                     }
                     break;
                 case WINDOW_TYPE.Download:
-                    Window.maxSize = new Vector2(600, 300);
-                    Window.minSize = new Vector2(600, 300);
-
-                    GetPackageInfo();
-                    if (_packageList != null)
+                    Window.maxSize = new Vector2(600, 500);
+                    Window.minSize = new Vector2(600, 500);
+                  
+                    if (!KyowonPackageManager.IsInstalled("com.kyowon.unityplugins.projectmanager"))
                     {
-                        if (!KyowonPackageManager.IsInstalled("com.kyowon.unityplugins.projectmanager"))
-                        {
-                            EditorGUILayout.HelpBox(GITHUB_PACKAGE_DOWNLOAD_GUIDE, MessageType.Info);
-                        }
+                        EditorGUILayout.HelpBox(GITHUB_PACKAGE_DOWNLOAD_GUIDE, MessageType.Info);
+                    }
 
+                    EditorGUILayout.BeginHorizontal();
+                    GUILayout.Label(GetLogoImage()); ;
+
+                    EditorGUILayout.BeginVertical();
+                    EditorGUILayout.Space(5f);
+                    EditorGUILayout.BeginHorizontal();
+                    //TODO: com.kyowon.unityplugins.projectmanager 인지 체크
+
+                    EditorGUILayout.BeginVertical();
+
+                    EditorGUILayout.LabelField(_packageDetailList[0].Name);
+                    EditorGUILayout.LabelField(_packageDetailList[0].dist_tags.Latest);
+                    EditorGUILayout.LabelField(_packageDetailList[0].Description);
+                    EditorGUILayout.EndVertical();
+
+                    if (GUILayout.Button("Install"))
+                    {
+                        await KyowonPackageManager.InstallPackage(_packageDetailList[0]);
+                    }
+                    if (GUILayout.Button("Document"))
+                    {
+                        Application.OpenURL(KYOWON_PACKAGE_DOCUMENT_URL);
+                        EditorGUI.BeginDisabledGroup(true);
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.EndVertical();
+                    EditorGUILayout.EndHorizontal();
+
+                    DrawLine();
+
+                    //Set UI - Kyowon Modules
+                    for (int i = 1; i < _packageDetailList.Count; i++)
+                    {
                         EditorGUILayout.BeginHorizontal();
-                        GUILayout.Label(GetLogoImage()); ;
 
                         EditorGUILayout.BeginVertical();
-                        EditorGUILayout.Space(30f);
-                        EditorGUILayout.BeginHorizontal();
-                        //TODO: com.kyowon.unityplugins.projectmanager 인지 체크
-                        EditorGUILayout.LabelField(_packageList[0].Name);
+                        EditorGUILayout.LabelField(_packageDetailList[i].Name);
+                        EditorGUILayout.LabelField(_packageDetailList[i].dist_tags.Latest);
+                        EditorGUILayout.LabelField(_packageDetailList[i].Description);
+                        EditorGUILayout.EndVertical();
+
                         if (GUILayout.Button("Install"))
                         {
-                            InstallPackage(_packageList[0].Name);
+                            await KyowonPackageManager.InstallPackage(_packageDetailList[i]);
                         }
-                        if (GUILayout.Button("Document"))
-                        {
-                            Application.OpenURL(KYOWON_PACKAGE_DOCUMENT_URL);
-                            EditorGUI.BeginDisabledGroup(true);
-                        }
-                        EditorGUILayout.EndHorizontal();
-                        EditorGUILayout.EndVertical();
-                        EditorGUILayout.EndHorizontal();
 
-                        Rect rect = EditorGUILayout.GetControlRect(false, 1);
-                        rect.height = 1;
-                        EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 0.5f, 1));
-
-                        //Set UI - Kyowon Modules
-                        for (int i = 1; i < _packageList.Count; i++)
-                        {
-                            EditorGUILayout.BeginHorizontal();
-                            EditorGUILayout.LabelField(_packageList[i].Name);
-                            if (GUILayout.Button("Install"))
-                            {
-                                InstallPackage(_packageList[i].Name);
-                            }
-                            EditorGUILayout.EndHorizontal();
-                        }
+                        EditorGUILayout.EndHorizontal();
+                        DrawLine();
                     }
                     break;
             }
-        }
-
-        private async void GetPackageInfo()
-        {
-            if (_packageList == null)
-            {
-                _packageList = await KyowonPackageManager.GetPackageInfo();
-            }
-        }
-
-        private async void InstallPackage(string packageName)
-        {
-            await KyowonPackageManager.InstallPackage(packageName);
         }
 
         private Texture2D GetLogoImage()
@@ -186,6 +201,12 @@ namespace KyowonPackageManager.Editor
             return texture;
         }
 
+        private void DrawLine()
+        {
+            Rect rect = EditorGUILayout.GetControlRect(false, 1);
+            rect.height = 1;
+            EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 0.5f, 1));
+        }
     }
 }
 
