@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEngine;
 
@@ -55,7 +56,7 @@ namespace KyowonPackageManager.Editor
         {
             KyowonCertificationManager.DeleteCertiFile();
         }
-        
+
         public static void ShowCertificationWindow()
         {
             Window = GetWindow<KyowonEditorWindow>();
@@ -119,7 +120,13 @@ namespace KyowonPackageManager.Editor
                     }
                     break;
                 case WINDOW_TYPE.Download:
-                    for (int i = 0; i < _packageDetailList.Count; i++)
+                    if(_packageDetailList == null)
+                    {
+                        Close();
+                        KyowonPackageManager.Start();
+                    }
+
+                    for (int i = 0; i < _packageDetailList?.Count; i++)
                     {
                         if (_packageDetailList[i].Name == "projectmanager")
                         {
@@ -134,7 +141,7 @@ namespace KyowonPackageManager.Editor
                     break;
             }
         }
-        
+
         private void DrawProjectManagerUI(GitHubPackageDetailInfo package)
         {
             if (!KyowonPackageManager.IsInstalled("projectmanager"))
