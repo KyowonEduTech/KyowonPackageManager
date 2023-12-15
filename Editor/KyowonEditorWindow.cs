@@ -14,10 +14,10 @@ namespace KyowonPackageManager.Editor
 
     public class KyowonEditorWindow : EditorWindow
     {
-        private static WINDOW_TYPE _windowType = WINDOW_TYPE.Certification;
+        private static WINDOW_TYPE _windowType = WINDOW_TYPE.Download;
 
         private const string EDITOR_CERTIFICATION_WINDOW_TITLE = "Kyowon Certification";
-        private const string EDITOR_DOWNLOAD_WINDOW_TITLE = "Kyowon Package Download";
+        private const string EDITOR_DOWNLOAD_WINDOW_TITLE = "Kyowon Package Manager";
 
         private const string GITHUB_TOKEN_GUIDE = "\nKyowon GitHub 인증키가 필요합니다.\n\n" +
                                           "1. Project 담당자에게 GitHub KyowonEduTech Repository 의 권한을 요청하세요.\n" +
@@ -55,7 +55,7 @@ namespace KyowonPackageManager.Editor
         {
             KyowonCertificationManager.DeleteCertiFile();
         }
-
+        
         public static void ShowCertificationWindow()
         {
             Window = GetWindow<KyowonEditorWindow>();
@@ -73,7 +73,6 @@ namespace KyowonPackageManager.Editor
                 EditorApplication.update -= UpdateProgressbar;
                 EditorUtility.ClearProgressBar();
             }
-
             Window = GetWindow<KyowonEditorWindow>();
             Window.titleContent = new GUIContent(EDITOR_DOWNLOAD_WINDOW_TITLE);
             _windowType = WINDOW_TYPE.Download;
@@ -81,14 +80,12 @@ namespace KyowonPackageManager.Editor
         }
 
         private static float _progress = 0f;
-        private static void UpdateProgressbar()
+        public static void UpdateProgressbar()
         {
             _progress += 0.01f;
-            if (_progress > 1f)
-            {
-                _progress = 1f;
-            }
-            EditorUtility.DisplayProgressBar("Loading", "Getting package list...", _progress);
+            if (_progress > 1f) _progress = 1f;
+
+            EditorUtility.DisplayProgressBar("Loading","", _progress);
         }
 
         private async void OnGUI()
@@ -96,9 +93,6 @@ namespace KyowonPackageManager.Editor
             switch (_windowType)
             {
                 case WINDOW_TYPE.Certification:
-                    Window.maxSize = new Vector2(520, 170);
-                    Window.minSize = new Vector2(520, 170);
-
                     EditorGUILayout.HelpBox(GITHUB_TOKEN_GUIDE, MessageType.Warning);
 
                     GUILayout.BeginHorizontal();
@@ -125,65 +119,65 @@ namespace KyowonPackageManager.Editor
                     }
                     break;
                 case WINDOW_TYPE.Download:
-                    Window.maxSize = new Vector2(600, 500);
-                    Window.minSize = new Vector2(600, 500);
-                  
-                    if (!KyowonPackageManager.IsInstalled("com.kyowon.unityplugins.projectmanager"))
+                    for (int i = 0; i < _packageDetailList.Count; i++)
                     {
-                        EditorGUILayout.HelpBox(GITHUB_PACKAGE_DOWNLOAD_GUIDE, MessageType.Info);
-                    }
-
-                    EditorGUILayout.BeginHorizontal();
-                    GUILayout.Label(GetLogoImage()); ;
-
-                    EditorGUILayout.BeginVertical();
-                    EditorGUILayout.Space(5f);
-                    EditorGUILayout.BeginHorizontal();
-                    //TODO: com.kyowon.unityplugins.projectmanager 인지 체크
-
-                    EditorGUILayout.BeginVertical();
-
-                    EditorGUILayout.LabelField(_packageDetailList[0].Name);
-                    EditorGUILayout.LabelField(_packageDetailList[0].dist_tags.Latest);
-                    EditorGUILayout.LabelField(_packageDetailList[0].Description);
-                    EditorGUILayout.EndVertical();
-
-                    if (GUILayout.Button("Install"))
-                    {
-                        await KyowonPackageManager.InstallPackage(_packageDetailList[0]);
-                    }
-                    if (GUILayout.Button("Document"))
-                    {
-                        Application.OpenURL(KYOWON_PACKAGE_DOCUMENT_URL);
-                        EditorGUI.BeginDisabledGroup(true);
-                    }
-                    EditorGUILayout.EndHorizontal();
-                    EditorGUILayout.EndVertical();
-                    EditorGUILayout.EndHorizontal();
-
-                    DrawLine();
-
-                    //Set UI - Kyowon Modules
-                    for (int i = 1; i < _packageDetailList.Count; i++)
-                    {
-                        EditorGUILayout.BeginHorizontal();
-
-                        EditorGUILayout.BeginVertical();
-                        EditorGUILayout.LabelField(_packageDetailList[i].Name);
-                        EditorGUILayout.LabelField(_packageDetailList[i].dist_tags.Latest);
-                        EditorGUILayout.LabelField(_packageDetailList[i].Description);
-                        EditorGUILayout.EndVertical();
-
-                        if (GUILayout.Button("Install"))
+                        if (_packageDetailList[i].Name == "projectmanager")
                         {
-                            await KyowonPackageManager.InstallPackage(_packageDetailList[i]);
+                            DrawProjectManagerUI(_packageDetailList[i]);
                         }
-
-                        EditorGUILayout.EndHorizontal();
+                        else
+                        {
+                            DrawModuleInfo(_packageDetailList[i]);
+                        }
                         DrawLine();
                     }
                     break;
             }
+        }
+        
+        private void DrawProjectManagerUI(GitHubPackageDetailInfo package)
+        {
+            if (!KyowonPackageManager.IsInstalled("projectmanager"))
+            {
+                EditorGUILayout.HelpBox(GITHUB_PACKAGE_DOWNLOAD_GUIDE, MessageType.Info);
+            }
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label(GetLogoImage()); ;
+
+            DrawModuleInfo(package);
+
+            if (GUILayout.Button("Document"))
+            {
+                Application.OpenURL(KYOWON_PACKAGE_DOCUMENT_URL);
+            }
+            GUILayout.EndHorizontal();
+        }
+
+        private void DrawModuleInfo(GitHubPackageDetailInfo package)
+        {
+            GUILayout.BeginHorizontal();
+            GUILayout.BeginVertical();
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField(package.Name);
+            EditorGUILayout.LabelField(package.dist_tags.Latest);
+            EditorGUILayout.LabelField(package.Description);
+            GUILayout.EndVertical();
+
+            if (!KyowonPackageManager.IsInstalled(package.Name))
+            {
+                DrawInstallButton(package);
+            }
+            else
+            {
+                if (KyowonPackageManager.HasUpdate(package))
+                {
+                    DrawUpdateButton(package);
+                }
+                DrawRemoveButton(package);
+            }
+            GUILayout.EndHorizontal();
+            GUILayout.Space(5f);
         }
 
         private Texture2D GetLogoImage()
@@ -206,6 +200,31 @@ namespace KyowonPackageManager.Editor
             Rect rect = EditorGUILayout.GetControlRect(false, 1);
             rect.height = 1;
             EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 0.5f, 1));
+        }
+
+        //TODO: 아래 함수 3개 하나로 정리
+        private async void DrawInstallButton(GitHubPackageDetailInfo package)
+        {
+            if (GUILayout.Button("Install"))
+            {
+                await KyowonPackageManager.InstallPackage(package);
+            }
+        }
+
+        private async void DrawUpdateButton(GitHubPackageDetailInfo package)
+        {
+            if (GUILayout.Button("Update"))
+            {
+                await KyowonPackageManager.InstallPackage(package);
+            }
+        }
+
+        private void DrawRemoveButton(GitHubPackageDetailInfo package)
+        {
+            if (GUILayout.Button("Remove"))
+            {
+                KyowonPackageManager.RemovePackage(package.Name);
+            }
         }
     }
 }

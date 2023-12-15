@@ -1,18 +1,17 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using UnityEngine;
 
 
 namespace KyowonPackageManager.Editor
 {
     public static class KyowonPackageManager
     {
-        private static readonly string _path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "KyowonPackageManager");
-        private const string MANIFEST_FILE_NAME = "manifest.json";
-
+        private static readonly string _moduleRootPath = Path.Combine(Application.dataPath, "../Packages");
         private static List<GitHubPackageDetailInfo> _packageDetailInfoList = new List<GitHubPackageDetailInfo>();
+        private static KyowonPackage _kyowonPackage;
 
         public static async void Start()
         {
@@ -20,7 +19,7 @@ namespace KyowonPackageManager.Editor
 
             bool hasPermission = await KyowonCertificationManager.HasPackagePermission();
             if (!hasPermission) KyowonEditorWindow.ShowCertificationWindow();
-            else KyowonEditorWindow.ShowDownloadWindow();
+            KyowonEditorWindow.ShowDownloadWindow();
         }
 
         public static async Task<List<GitHubPackageDetailInfo>> GetPackageInfo()
@@ -29,21 +28,19 @@ namespace KyowonPackageManager.Editor
             {
                 string packageInfoText = await GitHubAPI.GetPacskageInfo();
                 List<GitHubPackageInfo> _packageList = JsonConvert.DeserializeObject<List<GitHubPackageInfo>>(packageInfoText);
+
                 foreach (GitHubPackageInfo packageInfo in _packageList)
                 {
                     string packageDetailInfoText = await GitHubAPI.GetPacskageInfo(packageInfo.Name);
+                    string removeText = "com.kyowon.unityplugins.";
+
                     GitHubPackageDetailInfo packageDetailInfo = JsonConvert.DeserializeObject<GitHubPackageDetailInfo>(packageDetailInfoText);
-                    packageDetailInfo.Name = Rename(packageDetailInfo.Name);
+
+                    packageDetailInfo.Name = packageDetailInfo.Name.Remove(removeText.IndexOf(removeText), removeText.Length);
                     _packageDetailInfoList.Add(packageDetailInfo);
                 }
             }
             return _packageDetailInfoList;
-        }
-
-        private static string Rename(string fullName)
-        {
-            string removeText = "com.kyowon.unityplugins.";
-            return fullName.Remove(removeText.IndexOf(removeText), removeText.Length);
         }
 
         public static async Task<GitHubPackageDetailInfo> GetPackageDetailInfo(string packageName)
@@ -52,42 +49,52 @@ namespace KyowonPackageManager.Editor
             return JsonConvert.DeserializeObject<GitHubPackageDetailInfo>(packageDetailInfoText);
         }
 
+        public static string GetModuleRootPath()
+        {
+            return _moduleRootPath;
+        }
+
         public static async Task InstallPackage(GitHubPackageDetailInfo package)
         {
+            if (Directory.Exists(Path.Combine(_moduleRootPath, package.Name)))
+            {
+                RemovePackage(package.Name);
+            }
             await GitHubAPI.DownloadPackage(package);
         }
 
-        public static void RemovePackage()
-        {
-            //패키지 있는지 확인
-            //다운로드 관리 파일에 패키지이름/버전 추가
-            //파일 지우기
+        public static void RemovePackage(string packageName)
+        { 
+            string modulePath = Path.Combine(_moduleRootPath, packageName);
+
+            if (Directory.Exists(modulePath))
+            {
+                Directory.Delete(modulePath, true);
+                File.Delete(modulePath + ".meta");
+            }
         }
 
-        public static void UpdatePackage()
+        public static bool HasUpdate(GitHubPackageDetailInfo package)
         {
-            //파일 덮어쓰기
+            string packagePath = Path.Combine(_moduleRootPath, package.Name);
+            if (Directory.Exists(packagePath))
+            {
+                string jsonText = File.ReadAllText(Path.Combine(packagePath, "package.json"));
+                _kyowonPackage = JsonConvert.DeserializeObject<KyowonPackage>(jsonText);
+                int result = string.Compare(package.dist_tags.Latest, _kyowonPackage.Version);
+
+                if(result > 0)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public static bool IsInstalled(string packageName)
         {
-            string packageFolderPath = Path.Combine(UnityEngine.Application.dataPath, "KyowonModules");
-            string searchFilePath = Path.Combine(packageFolderPath, packageName);
-
-            return Directory.Exists(searchFilePath) ? true : false;
-        }
-        
-        //download 된 pakcage 관리 파일 생성
-        private static void SetManifest(string packageName)
-        {
-            if (File.Exists(Path.Combine(_path, MANIFEST_FILE_NAME)))
-            {
-
-            }
-            else
-            {
-                File.WriteAllText(Path.Combine(_path, MANIFEST_FILE_NAME), null);
-            }
+            string module = Path.Combine(_moduleRootPath, packageName);
+            return Directory.Exists(module);
         }
     }
 }

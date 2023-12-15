@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
-using UnityEngine;
 using UnityEngine.Networking;
 
 
@@ -23,32 +23,41 @@ namespace KyowonPackageManager.Editor
             return handler?.text;
         }
 
-        public static async Task DownloadPackage(GitHubPackageDetailInfo packageDetailInfo)
+        public static async Task<string> DownloadPackage(GitHubPackageDetailInfo packageDetailInfo)
         {
+            EditorApplication.update += KyowonEditorWindow.UpdateProgressbar;
+
             string latestVesion = packageDetailInfo.dist_tags.Latest;
             string packageName = packageDetailInfo.Name;
             string url = packageDetailInfo.Versions[latestVesion].Dist.Tarball;
 
             DownloadHandler handler = await SendRequest(MakeRequest(url));
-            string packageFolderPath = Path.Combine(Application.dataPath, "KyowonModules");
+            string packageFolderPath = KyowonPackageManager.GetModuleRootPath();
             string downloadFile = Path.Combine(packageFolderPath, $"{packageName}.tar.gz");
             byte[] tarballData = handler.data;
 
-            if (!File.Exists(packageFolderPath))
+            if (!File.Exists(Path.Combine(packageFolderPath, packageName)))
             {
-                Directory.CreateDirectory(packageFolderPath);
-                if (!File.Exists(Path.Combine(packageFolderPath, packageName))) {
-                    File.WriteAllBytes(downloadFile, tarballData);
-                    UnpackTarball(downloadFile, packageName);
-                }
+                File.WriteAllBytes(downloadFile, tarballData);
+                UnpackTarball(downloadFile, packageName);
+            }
+            else
+            {
+                //폴더가 있고 version 이 낮으면 업데이트 해야 함.
+                //지웠다가 깔아야 할 듯
             }
             UnityEngine.Debug.Log($"{packageName} Download Complete");
 
-            if (packageDetailInfo.Versions[latestVesion].Dependencies == null) return;
-            await DownloadDependencies(packageDetailInfo.Versions[latestVesion].Dependencies);
+            if (packageDetailInfo.Versions[latestVesion].Dependencies != null)
+            {
+                await DownloadDependencies(packageDetailInfo.Versions[latestVesion].Dependencies);
+                UnityEngine.Debug.Log("All dependency packages installed!");
+            }
 
-            UnityEngine.Debug.Log("All dependency packages installed!");
-            UnityEngine.Debug.ClearDeveloperConsole();
+            EditorApplication.update -= KyowonEditorWindow.UpdateProgressbar;
+            EditorUtility.ClearProgressBar();
+            
+            return packageFolderPath;
         }
 
         private static async Task DownloadDependencies(Dictionary<string, string> packageDictionary)
@@ -68,7 +77,7 @@ namespace KyowonPackageManager.Editor
                 }
                 else
                 {
-                    UnityEngine.Debug.LogError($"Failed to install package {dependency.Key}: {request.Error.message}");
+                    UnityEngine.Debug.Log($"Failed to install package {dependency.Key}: {request.Error.message}");
                     await DownloadDependencyWithValue(dependency.Value);
                 }
             }
@@ -94,13 +103,13 @@ namespace KyowonPackageManager.Editor
             }
         }
 
-        private static string ChangeFormatToUrl(string value)
+        private static string ChangeFormatToUrl(string text)
         {
-            return value.Replace("#", "?");
+            return text.Replace("#", "?");
         }
 
         /*
-         * TODO: Version 받아온 후 Info 요청 진행
+         * TODO: Github API Version 받아온 후 Info 요청 진행
         {
             string apiUrl = $"https://api.github.com/versions";
             StartCoroutine(SendRequest(MakeRequest(apiUrl)));
