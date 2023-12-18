@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using UnityEditor;
 using UnityEngine;
 
 
@@ -56,7 +57,9 @@ namespace KyowonPackageManager.Editor
 
         public static async Task InstallPackage(GitHubPackageDetailInfo package)
         {
-            if (Directory.Exists(Path.Combine(_moduleRootPath, package.Name)))
+            string modulePath = Path.Combine(_moduleRootPath, package.Name);
+
+            if (Directory.Exists(modulePath))
             {
                 RemovePackage(package.Name);
             }
@@ -66,12 +69,12 @@ namespace KyowonPackageManager.Editor
         public static void RemovePackage(string packageName)
         { 
             string modulePath = Path.Combine(_moduleRootPath, packageName);
-
-            if (Directory.Exists(modulePath))
-            {
+ 
+            if (Directory.Exists(modulePath)) { 
                 Directory.Delete(modulePath, true);
                 File.Delete(modulePath + ".meta");
             }
+            AssetDatabase.Refresh();
         }
 
         public static bool HasUpdate(GitHubPackageDetailInfo package)

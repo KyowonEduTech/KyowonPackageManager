@@ -23,7 +23,7 @@ namespace KyowonPackageManager.Editor
             return handler?.text;
         }
 
-        public static async Task<string> DownloadPackage(GitHubPackageDetailInfo packageDetailInfo)
+        public static async Task DownloadPackage(GitHubPackageDetailInfo packageDetailInfo)
         {
             EditorApplication.update += KyowonEditorWindow.UpdateProgressbar;
 
@@ -56,8 +56,8 @@ namespace KyowonPackageManager.Editor
 
             EditorApplication.update -= KyowonEditorWindow.UpdateProgressbar;
             EditorUtility.ClearProgressBar();
-            
-            return packageFolderPath;
+
+            Client.Resolve();
         }
 
         private static async Task DownloadDependencies(Dictionary<string, string> packageDictionary)
