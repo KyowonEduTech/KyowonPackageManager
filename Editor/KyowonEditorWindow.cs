@@ -133,7 +133,11 @@ namespace KyowonPackageManager.Editor
                         }
                         else
                         {
+                            if (!KyowonPackageManager.IsInstalled("projectmanager")) {
+                                GUI.enabled = false;
+                            }
                             DrawModuleInfo(_packageDetailList[i]);
+                            GUI.enabled = true;
                         }
                         DrawLine();
                     }
