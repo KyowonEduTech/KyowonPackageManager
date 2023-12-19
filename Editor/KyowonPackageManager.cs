@@ -77,7 +77,7 @@ namespace KyowonPackageManager.Editor
             AssetDatabase.Refresh();
         }
 
-        public static bool HasUpdate(GitHubPackageDetailInfo package)
+        public static string HasUpdate(GitHubPackageDetailInfo package)
         {
             string packagePath = Path.Combine(_moduleRootPath, package.Name);
             if (Directory.Exists(packagePath))
@@ -88,16 +88,22 @@ namespace KyowonPackageManager.Editor
 
                 if(result > 0)
                 {
-                    return true;
+                    return _kyowonPackage.Version;
                 }
             }
-            return false;
+            return null;
         }
 
         public static bool IsInstalled(string packageName)
         {
             string module = Path.Combine(_moduleRootPath, packageName);
             return Directory.Exists(module);
+        }
+
+        public static void RestartPackageManager()
+        {
+            _packageDetailInfoList = null;
+            Start();
         }
     }
 }

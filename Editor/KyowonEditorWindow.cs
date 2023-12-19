@@ -146,6 +146,7 @@ namespace KyowonPackageManager.Editor
                     EditorGUILayout.EndScrollView();
                     break;
             }
+            DrawEditorWindowUpdateButton();
         }
 
         private void DrawProjectManagerUI(GitHubPackageDetailInfo package)
@@ -170,31 +171,49 @@ namespace KyowonPackageManager.Editor
         private bool isFoldout = false; //Fold Button 변수
         private void DrawModuleInfo(GitHubPackageDetailInfo package)
         {
+            EditorStyles.boldLabel.normal.textColor = Color.white;
             GUILayout.BeginHorizontal();
             GUILayout.BeginVertical();
             EditorGUILayout.Space();
-            EditorGUILayout.LabelField(package.Name);
-            EditorGUILayout.LabelField(package.dist_tags.Latest);
+            EditorGUILayout.LabelField(package.Name, EditorStyles.boldLabel);
 
+            #region Version Text
+            string oldVersion = KyowonPackageManager.HasUpdate(package);
+            if (oldVersion != null)
+            {
+                EditorGUILayout.LabelField(oldVersion);
+            }
+            else
+            {
+                EditorGUILayout.LabelField(package.dist_tags.Latest);
+            }
+            #endregion
+
+            #region  추가설명 Fold Box
             isFoldout = EditorGUILayout.Foldout(isFoldout, "추가 설명");
             if (isFoldout)
             {
                 EditorGUILayout.LabelField(package.Description);
             }
+            #endregion
+
             GUILayout.EndVertical();
 
+            #region Buttons
             if (!KyowonPackageManager.IsInstalled(package.Name))
             {
                 DrawInstallButton(package);
             }
             else
             {
-                if (KyowonPackageManager.HasUpdate(package))
+                if(oldVersion != null)
                 {
-                    DrawUpdateButton(package);
+                    DrawUpdateButton(package, package.dist_tags.Latest);
                 }
                 DrawRemoveButton(package);
             }
+            #endregion
+
             GUILayout.EndHorizontal();
             GUILayout.Space(5f);
         }
@@ -230,12 +249,18 @@ namespace KyowonPackageManager.Editor
             }
         }
 
-        private async void DrawUpdateButton(GitHubPackageDetailInfo package)
+        private async void DrawUpdateButton(GitHubPackageDetailInfo package, string newVersion)
         {
-            if (GUILayout.Button("Update"))
+            GUIStyle originalStyle = new GUIStyle(GUI.skin.button);
+            GUIStyle coloredStyle = new GUIStyle(GUI.skin.button);
+            coloredStyle.normal.textColor = Color.yellow;
+
+            if (GUILayout.Button($"Update ({newVersion})", coloredStyle))
             {
                 await KyowonPackageManager.InstallPackage(package);
             }
+
+            GUI.skin.button = originalStyle;
         }
 
         private void DrawRemoveButton(GitHubPackageDetailInfo package)
@@ -243,6 +268,15 @@ namespace KyowonPackageManager.Editor
             if (GUILayout.Button("Remove"))
             {
                 KyowonPackageManager.RemovePackage(package.Name);
+            }
+        }
+
+        public void DrawEditorWindowUpdateButton()
+        {
+            if (GUILayout.Button(new GUIContent(" Editor Update", EditorGUIUtility.IconContent("Refresh@2x").image), EditorStyles.miniButton))
+            {
+                Close();
+                KyowonPackageManager.RestartPackageManager();
             }
         }
     }
