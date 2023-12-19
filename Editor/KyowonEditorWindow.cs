@@ -88,6 +88,7 @@ namespace KyowonPackageManager.Editor
             EditorUtility.DisplayProgressBar("Loading","", _progress);
         }
 
+        private Vector2 _scrollPosition = Vector2.zero; //Editor Window 스크롤을 위한 변수
         private async void OnGUI()
         {
             switch (_windowType)
@@ -125,6 +126,7 @@ namespace KyowonPackageManager.Editor
                         KyowonPackageManager.Start();
                     }
 
+                    _scrollPosition = EditorGUILayout.BeginScrollView(_scrollPosition);
                     for (int i = 0; i < _packageDetailList?.Count; i++)
                     {
                         if (_packageDetailList[i].Name == "projectmanager")
@@ -141,6 +143,7 @@ namespace KyowonPackageManager.Editor
                         }
                         DrawLine();
                     }
+                    EditorGUILayout.EndScrollView();
                     break;
             }
         }
@@ -164,6 +167,7 @@ namespace KyowonPackageManager.Editor
             GUILayout.EndHorizontal();
         }
 
+        private bool isFoldout = false; //Fold Button 변수
         private void DrawModuleInfo(GitHubPackageDetailInfo package)
         {
             GUILayout.BeginHorizontal();
@@ -171,7 +175,12 @@ namespace KyowonPackageManager.Editor
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(package.Name);
             EditorGUILayout.LabelField(package.dist_tags.Latest);
-            EditorGUILayout.LabelField(package.Description);
+
+            isFoldout = EditorGUILayout.Foldout(isFoldout, "추가 설명");
+            if (isFoldout)
+            {
+                EditorGUILayout.LabelField(package.Description);
+            }
             GUILayout.EndVertical();
 
             if (!KyowonPackageManager.IsInstalled(package.Name))
