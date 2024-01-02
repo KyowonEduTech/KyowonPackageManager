@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
+using static UnityEditor.PlayerSettings;
 
 
 namespace KyowonPackageManager.Editor
@@ -63,7 +64,11 @@ namespace KyowonPackageManager.Editor
             {
                 RemovePackage(package.Name);
             }
-            await GitHubAPI.DownloadPackage(package);
+            bool hasUpdate = HasUpdateKyowonPackageInfo(package);
+            if (hasUpdate)
+            {
+                await GitHubAPI.DownloadPackage(package);
+            }
         }
 
         public static void RemovePackage(string packageName)
@@ -74,6 +79,8 @@ namespace KyowonPackageManager.Editor
                 Directory.Delete(modulePath, true);
                 File.Delete(modulePath + ".meta");
             }
+            RemoveKyowonPackageInfo(packageName);
+
             AssetDatabase.Refresh();
         }
 
@@ -92,6 +99,62 @@ namespace KyowonPackageManager.Editor
                 }
             }
             return null;
+        }
+
+
+        private static bool HasUpdateKyowonPackageInfo(GitHubPackageDetailInfo packageDetailInfo)
+        {
+            string infoPath = Path.Combine(_moduleRootPath, "KyowonPackageInfo.json");
+
+            List<GitHubPackageDetailInfo> infos = new List<GitHubPackageDetailInfo>();
+            if (File.Exists(infoPath))
+            {
+                string text = File.ReadAllText(infoPath);
+                infos = JsonConvert.DeserializeObject<List<GitHubPackageDetailInfo>>(text);
+            }
+
+            if (infos.Find((x) => x.Name == packageDetailInfo.Name) is GitHubPackageDetailInfo find)
+            {
+                if (find.dist_tags.Latest != packageDetailInfo.dist_tags.Latest)
+                {
+                    infos.Remove(find);
+                    infos.Add(packageDetailInfo);
+                    string json = JsonConvert.SerializeObject(infos);
+                    File.WriteAllText(infoPath, json);
+                    AssetDatabase.Refresh();
+
+                    return true;
+                }
+            }
+            else
+            {
+                infos.Add(packageDetailInfo);
+                string json = JsonConvert.SerializeObject(infos);
+                File.WriteAllText(infoPath, json);
+                AssetDatabase.Refresh();
+                return true;
+            }
+
+            AssetDatabase.Refresh();
+            return false;
+        }
+
+        private static void RemoveKyowonPackageInfo(string packageName)
+        {
+            string infoPath = Path.Combine(_moduleRootPath, "KyowonPackageInfo.json");
+            if (File.Exists(infoPath))
+            {
+                string text = File.ReadAllText(infoPath);
+                List<GitHubPackageDetailInfo> infos = JsonConvert.DeserializeObject<List<GitHubPackageDetailInfo>>(text);
+                if (infos.Find((x) => x.Name == packageName) is GitHubPackageDetailInfo find)
+                {
+                    infos.Remove(find);
+                    string json = JsonConvert.SerializeObject(infos);
+                    File.WriteAllText(infoPath, json);
+                    AssetDatabase.Refresh();
+                    Debug.Log("Delete!!!!!!!!!!!!!!!!!!!!!");
+                }
+            }
         }
 
         public static bool IsInstalled(string packageName)

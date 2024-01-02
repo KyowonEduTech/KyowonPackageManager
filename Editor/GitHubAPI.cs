@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
+using UnityEngine;
 using UnityEngine.Networking;
-
+using Newtonsoft.Json;
+using System.Linq;
 
 namespace KyowonPackageManager.Editor
 {
@@ -28,24 +30,44 @@ namespace KyowonPackageManager.Editor
             EditorApplication.update += KyowonEditorWindow.UpdateProgressbar;
 
             string latestVesion = packageDetailInfo.dist_tags.Latest;
+            //string latestVesion = packageDetailInfo.Versions.Values.ToList()[0].Version;
             string packageName = packageDetailInfo.Name;
             string url = packageDetailInfo.Versions[latestVesion].Dist.Tarball;
 
+            UnityEngine.Debug.Log(packageName + "#############1");
+            await Task.Delay(1000);
             DownloadHandler handler = await SendRequest(MakeRequest(url));
+            UnityEngine.Debug.Log(packageName + "#############2");
             string packageFolderPath = KyowonPackageManager.GetModuleRootPath();
+            UnityEngine.Debug.Log(packageName + "#############3");
             string downloadFile = Path.Combine(packageFolderPath, $"{packageName}.tar.gz");
+            UnityEngine.Debug.Log(packageName + "#############4");
             byte[] tarballData = handler.data;
+            UnityEngine.Debug.Log(packageName + "#############5");
 
-            if (!File.Exists(Path.Combine(packageFolderPath, packageName)))
-            {
-                File.WriteAllBytes(downloadFile, tarballData);
-                UnpackTarball(downloadFile, packageName);
-            }
-            else
-            {
-                //폴더가 있고 version 이 낮으면 업데이트 해야 함.
-                //지웠다가 깔아야 할 듯
-            }
+            UnityEngine.Debug.Log(packageName + "#############");
+            File.WriteAllBytes(downloadFile, tarballData);
+            UnpackTarball(downloadFile, packageName);
+
+            //if (hasUpdate)
+            //{
+            //    File.WriteAllBytes(downloadFile, tarballData);
+            //    UnpackTarball(downloadFile, packageName);
+            //}
+            //if (!File.Exists(Path.Combine(packageFolderPath, packageName)))
+            //{
+            //    File.WriteAllBytes(downloadFile, tarballData);
+            //    UnpackTarball(downloadFile, packageName);
+                
+            //}
+            //else
+            //{
+            //    //폴더가 있고 version 이 낮으면 업데이트 해야 함.
+            //    //지웠다가 깔아야 할 듯
+            //}
+
+            
+
             UnityEngine.Debug.Log($"{packageName} Download Complete");
 
             if (packageDetailInfo.Versions[latestVesion].Dependencies != null)
