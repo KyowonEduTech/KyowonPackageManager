@@ -91,6 +91,7 @@ namespace KyowonPackageManager.Editor
         private Vector2 _scrollPosition = Vector2.zero; //Editor Window 스크롤을 위한 변수
         private async void OnGUI()
         {
+            Window.Focus();
             switch (_windowType)
             {
                 case WINDOW_TYPE.Certification:
