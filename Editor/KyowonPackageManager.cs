@@ -12,10 +12,12 @@ namespace Kyowon.Package
 {
     public static class KyowonPackageManager
     {
+        private const string SESSION_STARTED = "KyowonPackageManager_Started";
+
         private static readonly string _cachePath = Path.Combine(Application.dataPath, "../Library/KyowonPackageCache.json");
         private static readonly string _moduleRootPath = Path.Combine(Application.dataPath, "../Packages");
         private static readonly string _kyowonManifestPath = Path.Combine(_moduleRootPath, "KyowonPackageManifest.json");
-        private static readonly string _gitignorePath= Path.Combine(_moduleRootPath, ".gitignore");
+        private static readonly string _gitignorePath = Path.Combine(_moduleRootPath, ".gitignore");
 
         private const string PACKAGE_JSON = "package.json";
 
@@ -73,6 +75,7 @@ namespace Kyowon.Package
         {
             await LoadPackageInfo(force);
             await SyncPackageManifest();
+            SessionState.SetBool(SESSION_STARTED, true);
             IsInitialized = true;
         }
 
@@ -93,6 +96,7 @@ namespace Kyowon.Package
         public static List<KyowonPackageInfo> GetPackageInfos() => _packageInfoList;
         private static async Task<List<KyowonPackageInfo>> LoadPackageInfo(bool force = false)
         {
+            if (!SessionState.GetBool(SESSION_STARTED, false)) force = true;
             if (force || _packageInfoList == null || _packageInfoList.Count == 0)
             {
                 if (!force && File.Exists(_cachePath))
@@ -211,7 +215,7 @@ namespace Kyowon.Package
                     var p = progress.CreateSubProgress(msg, 0, 0.9f);
 
                     await InstallPackage_Internal(packageInfo, info.Value, p);
-                    
+
                     p.SetComplete();
                 }
             }

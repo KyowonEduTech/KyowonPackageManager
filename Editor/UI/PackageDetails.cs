@@ -62,7 +62,7 @@ namespace Kyowon.Package.UI
 
             if (info.HasUpdate)
             {
-                UpdateButton.text = string.Format(UPDATE_FORMAT);
+                UpdateButton.text = string.Format(UPDATE_FORMAT, info.Latest);
             }
 
             VersionLabel.text = info.Version ?? info.Latest;
