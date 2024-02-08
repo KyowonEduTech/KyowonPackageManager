@@ -66,6 +66,7 @@ namespace Kyowon.Package
                 }
                 if (!IsInitialized) return;
 
+                if (!SessionState.GetBool(SESSION_STARTED, false)) await LoadPackageInfo(true);
                 await SyncPackageManifest();
             }
             else _focused = UnityEditorInternal.InternalEditorUtility.isApplicationActive;
@@ -75,7 +76,6 @@ namespace Kyowon.Package
         {
             await LoadPackageInfo(force);
             await SyncPackageManifest();
-            SessionState.SetBool(SESSION_STARTED, true);
             IsInitialized = true;
         }
 
@@ -96,7 +96,11 @@ namespace Kyowon.Package
         public static List<KyowonPackageInfo> GetPackageInfos() => _packageInfoList;
         private static async Task<List<KyowonPackageInfo>> LoadPackageInfo(bool force = false)
         {
-            if (!SessionState.GetBool(SESSION_STARTED, false)) force = true;
+            if (!SessionState.GetBool(SESSION_STARTED, false))
+            {
+                force = true;
+                SessionState.SetBool(SESSION_STARTED, true);
+            }
             if (force || _packageInfoList == null || _packageInfoList.Count == 0)
             {
                 if (!force && File.Exists(_cachePath))
@@ -116,25 +120,29 @@ namespace Kyowon.Package
             return _packageInfoList;
         }
 
-        public static async Task InstallPackage(KyowonPackageInfo package, string version)
+        public static async Task<bool> InstallPackage(KyowonPackageInfo package, string version)
         {
             var p = new KyowonPackageProgress(string.Format(KyowonPackageProgress.MSG_INSTALL_PACKAGE, package.Name));
 
-            await InstallPackage_Internal(package, version, p);
-            UpdateManifest();
+            var r = await InstallPackage_Internal(package, version, p);
+            if (r) UpdateManifest();
 
             p.SetComplete();
+            return r;
         }
-        private static async Task InstallPackage_Internal(KyowonPackageInfo package, string version, KyowonPackageProgress p)
+        private static async Task<bool> InstallPackage_Internal(KyowonPackageInfo package, string version, KyowonPackageProgress p)
         {
             string modulePath = Path.Combine(_moduleRootPath, package.Name);
             if (Directory.Exists(modulePath)) Directory.Delete(modulePath, true);
 
-            await KyowonPackageDownloadManager.Download(package, version, p);
-
-            var installedInfoPath = Path.Combine(_moduleRootPath, package.Name, PACKAGE_JSON);
-            var installedInfo = JsonConvert.DeserializeObject<KyowonPackageInfo_Installed>(File.ReadAllText(installedInfoPath));
-            UpdatePackageInfo(package, installedInfo);
+            var r = await KyowonPackageDownloadManager.Download(package, version, p);
+            if (r)
+            {
+                var installedInfoPath = Path.Combine(_moduleRootPath, package.Name, PACKAGE_JSON);
+                var installedInfo = JsonConvert.DeserializeObject<KyowonPackageInfo_Installed>(File.ReadAllText(installedInfoPath));
+                UpdatePackageInfo(package, installedInfo);
+            }
+            return r;
         }
         public static void RemovePackage(KyowonPackageInfo package)
         {
@@ -208,6 +216,16 @@ namespace Kyowon.Package
                 // 3. Manifest 파일에 명시되어 있는데 패키지 설치가 안되어 있을 때 or Manifest 파일에 명시되어 있는데 버전이 다를 때
                 if (!packageInfo.IsInstalled || packageInfo.Version != info.Value)
                 {
+                    if (!packageInfo.Versions.ContainsKey(info.Value))
+                    {
+                        // 버전정보가 없을 경우 Package 리스트 정보를 리프레시할 필요가 있으므로 로직 중단 및 세션 초기화
+                        // 강제 재시도시 무한 반복될 수 있으므로, 포커스 들어왔을 때 시도되도록 함
+                        Debug.LogError($"PackageManager : Faild to download {packageInfo.Name} - {info.Value}\nPlease refresh or check manifest.");
+                        SessionState.SetBool(SESSION_STARTED, false);
+                        progress?.SetComplete();
+                        return;
+                    }
+
                     isChanged = true;
 
                     progress ??= new KyowonPackageProgress(KyowonPackageProgress.MSG_SYNC_PACKAGES);
@@ -215,8 +233,8 @@ namespace Kyowon.Package
                     var p = progress.CreateSubProgress(msg, 0, 0.9f);
 
                     await InstallPackage_Internal(packageInfo, info.Value, p);
-
                     p.SetComplete();
+
                 }
             }
 

@@ -47,8 +47,10 @@ namespace Kyowon.Package
             return infoList;
         }
 
-        public static async Task Download(KyowonPackageInfo info, string version, IProgress<float> progress = null)
+        public static async Task<bool> Download(KyowonPackageInfo info, string version, IProgress<float> progress = null)
         {
+            if (!info.Versions.ContainsKey(version)) return false;
+
             string name = info.Name;
             var versionInfo = info.Versions[version];
 
@@ -63,7 +65,9 @@ namespace Kyowon.Package
             {
                 await DownloadDependencies(versionInfo.Dependencies);
             }
-            UnityEngine.Debug.Log($"{info.Name} Download Complete");
+
+            UnityEngine.Debug.Log($"PackageManager : {info.Name} - {version} Download Complete");
+            return true;
         }
 
         public static async Task DownloadDependencies(Dictionary<string, string> dependencies)
@@ -133,7 +137,7 @@ namespace Kyowon.Package
                 if (string.IsNullOrEmpty(request.error))
                 {
                     if (request.downloadHandler == null) return null;
-                    if (typeof(T) == typeof(string)) return request.downloadHandler.text as T;            
+                    if (typeof(T) == typeof(string)) return request.downloadHandler.text as T;
                     return request.downloadHandler.data as T;
                 }
                 else

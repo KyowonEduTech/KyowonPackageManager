@@ -83,9 +83,12 @@ namespace Kyowon.Package.UI
 
         private async void InstallPackageAsync()
         {
-            await KyowonPackageManager.InstallPackage(Info, Info.Latest);
-            SetPackage(Info, true);
-            OnUpdated(Info);
+            var r = await KyowonPackageManager.InstallPackage(Info, Info.Latest);
+            if (r)
+            {
+                SetPackage(Info, true);
+                OnUpdated(Info);
+            }
         }
 
         private void ShowDocument()
